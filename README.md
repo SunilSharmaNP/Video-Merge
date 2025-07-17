@@ -95,6 +95,16 @@ $ pip3 install -U -r requirements.txt
 $ bash start.sh
 ```
 
+## DockerFile
+```sh
+$ git https://github.com/SunilSharmaNP/Video-Merge.git
+$ cd Video-Merge
+$ $ cp sample_config.env config.env
+$ nano config.env # <fill config.env correctly by looking at sample_config.env>
+$ sudo docker build . -t vmb
+$ sudo docker run -p 15:15 -p 1515:1515 vmb
+```
+
 ## License
 ```
 Merge Bot, Telegram Video Merge Bot
