@@ -3,6 +3,8 @@ from pyrogram import filters, Client
 from pyrogram.types import Message, InlineKeyboardMarkup
 from helpers.msg_utils import MakeButtons
 from helpers.utils import UserSettings
+from plugins.usettings import userSettings
+
 
 @Client.on_message(filters.command(["settings"]))
 async def f1(c: Client, m: Message):
