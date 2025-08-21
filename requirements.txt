@@ -1,3 +1,6 @@
+# Enhanced requirements.txt
+
+# Original dependencies
 dnspython
 ffmpeg-python
 hachoir
@@ -9,3 +12,13 @@ pyromod
 python-dotenv
 requests
 TgCrypto
+
+# New dependencies for enhanced features
+aiohttp>=3.8.0
+aiofiles>=0.8.0
+asyncio
+urllib3>=1.26.0
+
+# Optional for better performance
+uvloop>=0.17.0; sys_platform != "win32"
+orjson>=3.8.0
