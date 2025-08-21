@@ -21,6 +21,33 @@ def get_time_left(elapsed: float, progress: float) -> str:
     if progress <= 0:
         return "Calculating..."
     total = elapsed / progress
+
+class UserSettings:
+    def __init__(self, uid, name):
+        self.user_id = uid
+        self.name = name
+        self.merge_mode = 1
+        self.edit_metadata = False
+        self.allowed = False
+        self.banned = False
+        self.thumbnail = None
+
+    def get(self):
+        # load from database or defaults
+        return {
+            "user_id": self.user_id,
+            "name": self.name,
+            "merge_mode": self.merge_mode,
+            "edit_metadata": self.edit_metadata,
+            "allowed": self.allowed,
+            "banned": self.banned,
+            "thumbnail": self.thumbnail,
+        }
+
+    def set(self):
+        # save to database
+        pass
+
     left = total - elapsed
     if left < 60:
         return f"{int(left)}s"
