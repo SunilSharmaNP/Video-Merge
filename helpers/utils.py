@@ -1,104 +1,52 @@
-# (c) dishapatel010
-import pickle
-import os.path
 import os
-import threading
-import time
-from helpers.database import setUserMergeSettings, getUserMergeSettings
-# from magic import Magic
+import ffmpeg
+from typing import Union
+
 SIZE_UNITS = ["B", "KB", "MB", "GB", "TB", "PB"]
 
-
-def get_readable_file_size(size_in_bytes) -> str:
-    if size_in_bytes is None:
+def get_readable_file_size(size_in_bytes: int) -> str:
+    if size_in_bytes is None or size_in_bytes == 0:
         return "0B"
     index = 0
-    while size_in_bytes >= 1024:
+    while size_in_bytes >= 1024 and index < len(SIZE_UNITS)-1:
         size_in_bytes /= 1024
         index += 1
+    return f"{round(size_in_bytes,2)}{SIZE_UNITS[index]}"
+
+def get_progress_bar(progress: float, length: int=20) -> str:
+    filled = int(length*progress)
+    return "█"*filled + "░"*(length-filled)
+
+def get_time_left(elapsed: float, progress: float) -> str:
+    if progress <= 0:
+        return "Calculating..."
+    total = elapsed / progress
+    left = total - elapsed
+    if left < 60:
+        return f"{int(left)}s"
+    if left < 3600:
+        m = int(left//60)
+        s = int(left%60)
+        return f"{m}m{s}s"
+    h = int(left//3600)
+    m = int((left%3600)//60)
+    return f"{h}h{m}m"
+
+async def get_video_properties(path: str) -> Union[dict, None]:
     try:
-        return f"{round(size_in_bytes, 2)}{SIZE_UNITS[index]}"
-    except IndexError:
-        return "File too large"
+        probe = ffmpeg.probe(path)
+        video = next(s for s in probe["streams"] if s["codec_type"]=="video")
+        return {
+            "duration": float(probe["format"].get("duration",0)),
+            "width": int(video.get("width",0)),
+            "height": int(video.get("height",0)),
+            "streams": probe["streams"],
+            "format": probe["format"],
+        }
+    except:
+        return None
 
-def get_mime_type(file_path):
-    mime = 1
-    mime_type = mime.from_file(file_path)
-    mime_type = mime_type or "text/plain"
-    return mime_type
-
-def get_path_size(path: str):
-    if os.path.isfile(path):
-        return os.path.getsize(path)
-    total_size = 0
-    for root, dirs, files in os.walk(path):
-        for f in files:
-            abs_path = os.path.join(root, f)
-            total_size += os.path.getsize(abs_path)
-    return total_size
-
-def get_readable_time(seconds: int) -> str:
-    result = ""
-    (days, remainder) = divmod(seconds, 86400)
-    days = int(days)
-    if days != 0:
-        result += f"{days}d"
-    (hours, remainder) = divmod(remainder, 3600)
-    hours = int(hours)
-    if hours != 0:
-        result += f"{hours}h"
-    (minutes, seconds) = divmod(remainder, 60)
-    minutes = int(minutes)
-    if minutes != 0:
-        result += f"{minutes}m"
-    seconds = int(seconds)
-    result += f"{seconds}s"
-    return result
-class UserSettings(object):
-    def __init__(self, uid: int, name:str):
-        self.user_id: int = uid
-        self.name: str = name
-        self.merge_mode: int = 1
-        self.edit_metadata: bool = False
-        self.allowed: bool = False
-        self.thumbnail = None
-        self.banned:bool = False
-        self.get()
-        # def __init__(self,uid:int,name:str,merge_mode:int=1,edit_metadata=False) -> None:
-
-    def get(self):
-        try:
-            cur = getUserMergeSettings(self.user_id)
-            if cur is not None:
-                self.name = cur["name"]
-                self.merge_mode = cur["user_settings"]["merge_mode"]
-                self.edit_metadata = cur["user_settings"]["edit_metadata"]
-                self.allowed = cur["isAllowed"]
-                self.thumbnail = cur["thumbnail"]
-                self.banned = cur["isBanned"]
-                return {
-                    "uid": self.user_id,
-                    "name": self.name,
-                    "user_settings": {
-                        "merge_mode": self.merge_mode,
-                        "edit_metadata": self.edit_metadata,
-                    },
-                    "isAllowed": self.allowed,
-                    "isBanned": self.banned,
-                    "thumbnail": self.thumbnail,
-                }
-            else: return self.set()
-        except Exception:
-            return self.set()
-
-    def set(self):
-        setUserMergeSettings(
-            uid=self.user_id,
-            name=self.name,
-            mode=self.merge_mode,
-            edit_metadata=self.edit_metadata,
-            banned=self.banned,
-            allowed=self.allowed,
-            thumbnail=self.thumbnail,
-        )
-        return self.get()
+def is_url_safe(url: str, domains: list) -> bool:
+    from urllib.parse import urlparse
+    netloc = urlparse(url).netloc.lower()
+    return any(d in netloc for d in domains)
