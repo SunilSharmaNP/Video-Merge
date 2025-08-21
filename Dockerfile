@@ -1,44 +1,78 @@
-# 1. Base Image: Naya aur supported version
-FROM python:3.9-slim-bullseye
+# Enhanced Dockerfile for VPS deployment
 
-# apt-get ko non-interactive mode me chalane ke liye
-ENV DEBIAN_FRONTEND=noninteractive
+FROM ubuntu:24.04
 
-# 2. Kaam karne ke liye directory set karein
+# Set working directory
 WORKDIR /usr/src/mergebot
+RUN chmod 777 /usr/src/mergebot
 
-# 3. Zaroori system packages install karein
-# Bullseye me 'p7zip-rar' nahi hai. Uski jagah 'unrar' istemal karenge.
-# 'unrar' "non-free" repository me hota hai, isliye sources.list me 'contrib' aur 'non-free' add karna hoga.
-RUN sed -i 's/ main/ main contrib non-free/g' /etc/apt/sources.list \
-    && apt-get update \
-    && apt-get install -y --no-install-recommends \
-    git \
-    p7zip-full \
-    unrar \
-    xz-utils \
-    wget \
-    curl \
-    pv \
-    jq \
-    ffmpeg \
-    unzip \
-    mediainfo \
+# Update system and install dependencies
+RUN apt-get -y update \
+    && apt-get -y upgrade \
+    && apt-get install apt-utils -y \
+    && apt-get install -y \
+        python3-full \
+        python3-pip \
+        python3-venv \
+        git \
+        wget \
+        curl \
+        pv \
+        jq \
+        ffmpeg \
+        mediainfo \
+        neofetch \
+        htop \
+        nano \
+        unzip \
+        ca-certificates \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# 4. Rclone (Commented hai, agar zaroorat ho to uncomment karein)
-# RUN curl https://rclone.org/install.sh | bash
+# Install rclone for drive uploads
+RUN curl https://rclone.org/install.sh | bash
 
-# 5. Python dependencies install karein
+# Create Python virtual environment
+RUN python3 -m venv venv && chmod +x venv/bin/python
+
+# Copy requirements first for better Docker layer caching
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN venv/bin/python -m pip install --no-cache-dir --upgrade pip \
+    && venv/bin/python -m pip install --no-cache-dir -r requirements.txt
 
-# 6. Bot ka saara source code copy karein
+# Copy application files
 COPY . .
 
-# 7. Start script ko executable banayein
+# Create necessary directories
+RUN mkdir -p downloads userdata logs \
+    && chmod -R 755 downloads userdata logs
+
+# Make scripts executable
 RUN chmod +x start.sh
 
-# 8. Container start hone par yeh command chalayein
+# Set environment variables
+ENV PYTHONPATH="/usr/src/mergebot:${PYTHONPATH}"
+ENV PATH="/usr/src/mergebot/venv/bin:${PATH}"
+
+# Expose ports (if using webhooks)
+EXPOSE 8080 8443
+
+# Health check to ensure the bot is running
+HEALTHCHECK --interval=60s --timeout=10s --start-period=20s --retries=3 \
+    CMD pgrep -f "python.*bot.py" > /dev/null || exit 1
+
+# Create a non-root user for security
+RUN groupadd -r botuser && useradd -r -g botuser botuser \
+    && chown -R botuser:botuser /usr/src/mergebot
+
+# Switch to non-root user
+USER botuser
+
+# Start the application
 CMD ["bash", "start.sh"]
+
+# Labels for better maintainability
+LABEL maintainer="your-email@example.com"
+LABEL version="2.0"
+LABEL description="Enhanced Telegram Video Merge Bot with URL download and GoFile upload support"
+LABEL source="https://github.com/your-username/enhanced-merge-bot"
