@@ -15,7 +15,6 @@ from bot import (
     gDict,
     queueDB,
     urlDB,
-    showQueue,
 )
 from helpers import database
 from helpers.utils import UserSettings
