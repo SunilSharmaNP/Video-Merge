@@ -55,6 +55,20 @@ from helpers.merger import merge_videos  # NEW
 botStartTime = time.time()
 parent_id = Config.GDRIVE_FOLDER_ID
 
+async def delete_all(root: str):
+    """Recursively remove all files under `root` directory."""
+    if os.path.isdir(root):
+        shutil.rmtree(root)
+
+# Export public API symbols so plugins can import them
+__all__ = [
+    "MergeBot",
+    "mergeApp",
+    "delete_all",
+    # add other public symbols as needed, e.g.:
+    # "start_handler", "files_handler", etc.
+]
+
 class MergeBot(Client):
     def start(self):
         super().start()
@@ -537,17 +551,6 @@ except KeyError:
     userBot = None
     LOGGER.warning("No User Session, Default Bot session will be used")
 
-async def delete_all(root: str):
-    """Recursively remove all files under `root` directory."""
-    if os.path.isdir(root):
-        shutil.rmtree(root)
-# Expose delete_all for import by plugins
-__all__ = [
-    "MergeBot",
-    "mergeApp",
-    "delete_all",
-    # (add other public symbols as needed)
-]
 
 
 if __name__ == "__main__":
