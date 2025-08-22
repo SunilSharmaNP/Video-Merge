@@ -76,3 +76,7 @@ def is_url_safe(url: str, domains: list) -> bool:
     from urllib.parse import urlparse
     netloc = urlparse(url).netloc.lower()
     return any(d in netloc for d in domains)
+
+# Alias for backward compatibility
+get_human_readable_size = get_readable_file_size
+
