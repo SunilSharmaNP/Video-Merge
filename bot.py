@@ -49,7 +49,7 @@ from config import Config
 from helpers import database
 from helpers.utils import UserSettings, get_readable_file_size, get_time_left as get_readable_time, is_url_safe
 from helpers.downloader import download_from_url, download_from_tg  # NEW
-from helpers.uploader import upload_to_telegram, upload_to_gofile, GofileUploader  # NEW
+from helpers.uploader import upload_to_telegram, GofileUploader
 from helpers.merger import merge_videos  # NEW
 
 botStartTime = time.time()
