@@ -8,7 +8,7 @@ from __init__ import LOGGER, UPLOAD_AS_DOC, UPLOAD_TO_DRIVE, UPLOAD_TO_GOFILE, q
 from config import Config
 from helpers.utils import UserSettings, get_readable_file_size
 from helpers.merger import merge_videos, MergeAudio
-+ from helpers.uploader import upload_to_telegram as uploadVideo, upload_to_gofile
+from helpers.uploader import upload_to_telegram as uploadVideo, upload_to_gofile
 from helpers.downloader import download_from_tg
 from helpers.rclone_upload import rclone_driver
 from bot import delete_all
