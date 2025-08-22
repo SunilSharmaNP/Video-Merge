@@ -1,7 +1,6 @@
 # Enhanced bot.py with URL download and GoFile upload support
 from plugins.usettings import userSettings
 from dotenv import load_dotenv
-from helpers.utils import ..., get_time_left as get_readable_time, ...
 load_dotenv("config.env", override=True)
 
 import asyncio
@@ -48,7 +47,7 @@ from __init__ import (
 )
 from config import Config
 from helpers import database
-from helpers.utils import UserSettings, get_readable_file_size, get_readable_time, is_url_safe
+from helpers.utils import UserSettings, get_readable_file_size, get_time_left as get_readable_time, is_url_safe
 from helpers.downloader import download_from_url, download_from_tg  # NEW
 from helpers.uploader import upload_to_telegram, upload_to_gofile, GofileUploader  # NEW
 from helpers.merger import merge_videos  # NEW
