@@ -1,4 +1,4 @@
-# helpers/merger.py - Your complete merger code integrated
+# helpers/merger.py (Fixed imports)
 
 import asyncio
 import os
@@ -6,15 +6,13 @@ import time
 from typing import List
 from config import Config
 from helpers.utils import get_video_properties, get_progress_bar, get_time_left
-from __init__ import LOGGER
 
-# Your complete throttling logic for progress bar
+# --- Throttling Logic for Progress Bar ---
 last_edit_time = {}
 EDIT_THROTTLE_SECONDS = 4.0
 
 async def smart_progress_editor(status_message, text: str):
     """A throttled editor to prevent FloodWait errors during progress updates."""
-    # A check to ensure status_message is not None
     if not status_message or not hasattr(status_message, 'chat'):
         return
 
@@ -37,7 +35,7 @@ async def merge_videos(video_files: List[str], user_id: int, status_message) -> 
     output_path = os.path.join(user_download_dir, f"merged_{int(time.time())}.mkv")
     inputs_file = os.path.join(user_download_dir, "inputs.txt")
 
-    # FIX 1: Use absolute paths in the inputs file
+    # --- FIX 1: Use absolute paths in the inputs file ---
     # This ensures FFmpeg can always find the files, resolving the "No such file" error.
     with open(inputs_file, 'w', encoding='utf-8') as f:
         for file in video_files:
@@ -65,12 +63,11 @@ async def merge_videos(video_files: List[str], user_id: int, status_message) -> 
         return output_path
     else:
         error_log = stderr.decode().strip()
-        LOGGER.info(f"Fast merge failed. FFmpeg stderr: {error_log}")
+        print(f"Fast merge failed. FFmpeg stderr: {error_log}")
         await status_message.edit_text(
             "⚠️ Fast merge failed. Videos might have different formats.\n"
             "🔄 **Switching to Robust Mode...** This will re-encode videos and may take longer."
         )
-
         await asyncio.sleep(2)
         os.remove(inputs_file)
         return await _merge_videos_filter(video_files, user_id, status_message)
@@ -124,7 +121,7 @@ async def _merge_videos_filter(video_files: List[str], user_id: int, status_mess
 
         line = line_bytes.decode('utf-8').strip()
 
-        # FIX 2: Handle "N/A" from FFmpeg progress to prevent ValueError
+        # --- FIX 2: Handle "N/A" from FFmpeg progress to prevent ValueError ---
         if 'out_time_ms' in line:
             parts = line.split('=')
             # Check if the value is a valid number before trying to convert it
@@ -134,13 +131,11 @@ async def _merge_videos_filter(video_files: List[str], user_id: int, status_mess
                 if total_duration > 0:
                     progress_percent = max(0, min(1, (current_time_ms / 1000000) / total_duration))
                     elapsed_time = time.time() - start_time
-
                     progress_text = (
                         f"⚙️ **Merging Videos (Robust Mode)...**\n"
                         f"➢ {get_progress_bar(progress_percent)} `{progress_percent:.1%}`\n"
                         f"➢ **Time Left:** `{get_time_left(elapsed_time, progress_percent)}`"
                     )
-
                     await smart_progress_editor(status_message, progress_text)
 
     await process.wait()
@@ -151,6 +146,6 @@ async def _merge_videos_filter(video_files: List[str], user_id: int, status_mess
     else:
         stderr = await process.stderr.read()
         error_output = stderr.decode().strip()
-        LOGGER.info(f"Robust merge failed. FFmpeg stderr: {error_output}")
+        print(f"Robust merge failed. FFmpeg stderr: {error_output}")
         await status_message.edit_text(f"❌ **Merge Failed!**\nRobust method also failed. See logs for details.")
         return None
