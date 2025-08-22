@@ -537,6 +537,19 @@ except KeyError:
     userBot = None
     LOGGER.warning("No User Session, Default Bot session will be used")
 
+async def delete_all(root: str):
+    """Recursively remove all files under `root` directory."""
+    if os.path.isdir(root):
+        shutil.rmtree(root)
+# Expose delete_all for import by plugins
+__all__ = [
+    "MergeBot",
+    "mergeApp",
+    "delete_all",
+    # (add other public symbols as needed)
+]
+
+
 if __name__ == "__main__":
     try:
         if userBot:
@@ -559,3 +572,5 @@ if __name__ == "__main__":
 
     LOGGER.info("Starting Enhanced Merge Bot...")
     mergeApp.run()
+
+
