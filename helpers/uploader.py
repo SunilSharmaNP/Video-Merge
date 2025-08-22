@@ -152,3 +152,6 @@ async def upload_to_gofile(file_path: str, status_message, custom_filename: str 
     except Exception as e:
         await status_message.edit_text(f"❌ **GoFile Upload Failed!**\nError: `{e}`")
         return None
+
+# Backward‐compatibility alias for mergeVideo plugin
+uploadVideo = upload_to_telegram
